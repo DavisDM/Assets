@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "Assets",
+			"path": "."
+		}
+	],
+	"settings": {
+		"dotnet.defaultSolution": "SlimeTime.sln"
+	}
+}
