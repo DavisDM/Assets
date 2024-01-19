@@ -19,7 +19,7 @@ public class Player : MonoBehaviour
     private float shotgunTimer = 0;
     private bool hasShotgunUpgrade = false;
     private bool hasShieldUpgrade = false;
-    public float shieldHealth = 50f;    // Total health of the shield
+    public float shieldHealth;    // Total health of the shield
     public float shieldRespawnTime = 5f; // Time to respawn the shield after it breaks
     public GameObject shieldAura;
     private float currentShieldHealth;
@@ -29,8 +29,6 @@ public class Player : MonoBehaviour
     public float bigShotInterval = 5.0f; // Time between big shot fires
     private bool hasBigShotUpgrade = false;
     private float bigShotTimer = 0;
-    private float bigShotSpeed = 0.25f; // Base speed of Big Shot
-    private float bigShotSize = 0.4f; // Base size of Big Shot
     private int bigShotCount = 0;
     private float shootTimer = 0;
     private CircleCollider2D playerCollider;
@@ -104,21 +102,16 @@ public class Player : MonoBehaviour
         public void EnableShotgunUpgrade(Player player)
     {
         hasShotgunUpgrade = true;
-        Debug.Log("has shotgun");
         switch (GetUpgradeLevel("Shotgun"))
         {
             case 1:
                 ConfigureShotgun(shotgunShots);
-                Debug.Log("shotgun lvl 1");
                 break;
             case 2:
                 ConfigureShotgun(shotgunShots*2); 
-                Debug.Log("shotgun lvl 2");
                 break;
             case 3:
                 ConfigureShotgun(shotgunShots*3); 
-                Debug.Log("shotgun lvl 3");
-
                 break;
             default:
                 break;
@@ -136,24 +129,18 @@ public class Player : MonoBehaviour
  
     public void EnableBigShotUpgrade(Player player)
 {
-    Debug.Log("EnableBigShotUpgrade called"); // This will print to the console when the method is called
-
     hasBigShotUpgrade = true;
-
     int bigShotLevel = GetUpgradeLevel("Big Shot");
-    Debug.Log("BigShot level: " + bigShotLevel); // This will print the level of the BigShot upgrade
-
-    // Rest of the method...
     switch (bigShotLevel)
     {
         case 1:
-            ConfigureBigShot(bigShotLevel, bigShotSpeed, 1f);
+            ConfigureBigShot(bigShotLevel, 10f, 1f);
             break;
         case 2:
-            ConfigureBigShot(bigShotLevel, 2f, 1.5f); // Slightly faster and bigger
+            ConfigureBigShot(bigShotLevel, 20f, 1.5f); 
             break;
         case 3:
-            ConfigureBigShot(bigShotLevel, 3f, 2f); // Even faster and bigger
+            ConfigureBigShot(bigShotLevel, 30f, 2f); 
             break;
         default:
             break;
@@ -161,10 +148,6 @@ public class Player : MonoBehaviour
 }
 private void ConfigureBigShot(int shotCount, float speed, float size)
 {
-
-
-  // Assign this in the inspector
-
     bigShotProjectilePrefab.GetComponent<BigShotProjectile>().speed = speed;
     bigShotProjectilePrefab.GetComponent<BigShotProjectile>().size = size;
     bigShotCount = shotCount;
@@ -172,7 +155,6 @@ private void ConfigureBigShot(int shotCount, float speed, float size)
 
 void ShootBigShot()
 {
-    Debug.Log(bigShotCount);
     for (int i = 0; i < bigShotCount; i++)
     {
         Vector2 shootDirection = UnityEngine.Random.insideUnitCircle.normalized;
@@ -205,40 +187,29 @@ void ShootBigShot()
     }
     public void EnableSlimeArm(Player player)
     {
-          switch (GetUpgradeLevel("SlimeArm"))
+          switch (GetUpgradeLevel("Slime Arm"))
         {
             case 1:
-                createSlimeArm(1);
+                CreateSlimeArm();
                 break;
             case 2:
-                createSlimeArm(2);
+                CreateSlimeArm();
                 break;
             case 3:
-                createSlimeArm(3);
+                CreateSlimeArm();
                 break;
             default:
                 break;
         }
     }
 
-    public void createSlimeArm(int slimeArms)
+    public void CreateSlimeArm()
     {
-         // Destroy existing slime arms
-        foreach (Transform child in transform)
-        {
-            if (child.CompareTag("SlimeArm")) // Assuming you've set a tag for slime arms
-            {
-                Destroy(child.gameObject);
-            }
-        }
-        for (int i = 0; i < slimeArms; i++){
-            GameObject slimeArm = Instantiate(slimeArmPrefab, transform.position, Quaternion.identity);
-            slimeArm.transform.SetParent(this.transform, false);
+            GameObject slimeArm = Instantiate(slimeArmPrefab, transform.position, Quaternion.identity);            
+            slimeArm.transform.SetParent(transform, false);
             float playerRadius = GetComponent<CircleCollider2D>().radius;
             float armLength = slimeArm.GetComponent<SpriteRenderer>().bounds.size.y / 2; // Adjust based on your setup
-            slimeArm.transform.localPosition = new Vector3(0, playerRadius + armLength, 0);
-            slimeArm.transform.localRotation = Quaternion.identity;
-        }
+            slimeArm.transform.SetLocalPositionAndRotation(new Vector3(0, playerRadius + armLength, 0), Quaternion.identity);       
     }
     public void EnableSlimeShield(Player player)
     {
@@ -259,6 +230,7 @@ void ShootBigShot()
         }
         shieldActive = true;
         currentShieldHealth = shieldHealth;
+        Debug.Log(shieldHealth);
         shieldAura.SetActive(true);
     }
     void ShootProjectile()
@@ -292,14 +264,11 @@ void ShootBigShot()
     public void LevelUp()
     {
         level++;
-        Debug.Log("levelup");
         experience -= experienceToNextLevel;
         experienceToNextLevel = CalculateNextLevelExperience(experienceToNextLevel);
-        Debug.Log($"Level Up: Level {level}, Experience {experience}, Next Level {experienceToNextLevel}");
         if (onLevelUp != null)
         {
             onLevelUp.Invoke();
-            Debug.Log("onLevelUp event invoked.");
         }
         Time.timeScale = 0;
     }
@@ -335,23 +304,18 @@ private void IncreaseUpgradeLevel(string upgradeName)
 }
 public void ApplyUpgrade(UpgradeOption upgradeOption)
 {
-    Debug.Log($"Applying upgrade: {upgradeOption?.name}");
     if (upgradeOption == null)
     {
-        Debug.Log("Upgrade not applied because upgradeOption is null.");
         return;
     }
     if (upgradeOption.level >= upgradeOption.maxLevel)
     {
-        Debug.Log($"Upgrade not applied because the upgrade level is not less than the max level.");
         return;
     }
-    Debug.Log($"Before applying upgrade: {upgradeOption.level}");
     // Increase the level before applying the upgrade
     upgradeOption.level++;
     // Now apply the upgrade
     upgradeOption.ApplyUpgrade(this);
-    Debug.Log($"After applying upgrade: {upgradeOption.level}");
 }
 
    public List<UpgradeOption> GetUpgradeOptions()
@@ -361,7 +325,6 @@ public void ApplyUpgrade(UpgradeOption upgradeOption)
      public void GainExperience(int amount)
         {
             experience += amount;
-            Debug.Log(experience);
             if (experience >= experienceToNextLevel)
             {
                 LevelUp();

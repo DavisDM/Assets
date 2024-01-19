@@ -79,14 +79,12 @@ public class UIManager : MonoBehaviour
 {
     if (upgradeOption != null && player != null)
     {   
-        Debug.Log("Selecting upgrade: " + upgradeOption.name);
         player.ApplyUpgrade(upgradeOption); // Apply the selected upgrade to the player
         levelUpOptionsUI.SetActive(false); // Close the upgrade screen
         Time.timeScale = 1; // Unpause the game (if it was paused)
     }
     else
     {
-        Debug.LogError("Player or upgradeOption is null!");
     }
 }
 
